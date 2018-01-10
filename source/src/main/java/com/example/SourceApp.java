@@ -1,7 +1,10 @@
 package com.example;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,6 +21,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @SpringBootApplication
 @ComponentScan({ "com.example" })
 public class SourceApp {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SourceApp.class);
 
     public static void main(String[] args) {
         SpringApplication.run(SourceApp.class, args);
@@ -47,6 +52,16 @@ public class SourceApp {
     RabbitTemplate rabbitTemplate(final ConnectionFactory connectionFactory) {
         final RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
         rabbitTemplate.setMessageConverter(producerJackson2MessageConverter());
+        rabbitTemplate.setConfirmCallback(confirmCallback());
         return rabbitTemplate;
+    }
+
+    @Bean
+    RabbitTemplate.ConfirmCallback confirmCallback() {
+        return (CorrelationData correlationData, boolean ack, String cause) -> LOGGER.info(
+                "Received confirm message : {} / ack: {} / cause if any: {}",
+                correlationData,
+                ack ? "ack" : "nack",
+                cause);
     }
 }
