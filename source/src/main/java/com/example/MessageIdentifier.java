@@ -19,4 +19,9 @@ public class MessageIdentifier implements Supplier<String> {
         final ZonedDateTime now = ZonedDateTime.now(ZONE_ID);
         return String.format("[%05d] - %s", IDENTITY.incrementAndGet(), now.format(FORMATTER));
     }
+
+    public int hour() {
+        final ZonedDateTime now = ZonedDateTime.now(ZONE_ID);
+        return now.getHour();
+    }
 }

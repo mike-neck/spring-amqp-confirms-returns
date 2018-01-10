@@ -16,6 +16,7 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-amqp')
 	compile('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
 	compile 'org.springframework.boot:spring-boot-starter-web'
+	compile 'org.springframework.boot:spring-boot-starter-data-redis'
 	compile('org.projectlombok:lombok')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }

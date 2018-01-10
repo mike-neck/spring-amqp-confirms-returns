@@ -1,11 +1,5 @@
 package com.example;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.amqp.rabbit.support.CorrelationData;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,33 +13,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "messages")
 public class MessageController {
 
-    private static final List<TextMessage> MESSAGES = new ArrayList<>();
+    private final MessageService messageService;
 
-    public MessageController(final RabbitTemplate rabbitTemplate,
-            final MessageIdentifier messageIdentifier) {
-        this.rabbitTemplate = rabbitTemplate;
-        this.messageIdentifier = messageIdentifier;
+    public MessageController(final MessageService messageService) {
+        this.messageService = messageService;
     }
 
-    private final RabbitTemplate rabbitTemplate;
-    private final MessageIdentifier messageIdentifier;
-
-    @GetMapping(produces = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_JSON_UTF8_VALUE })
+    @GetMapping(produces = {
+            MediaType.APPLICATION_JSON_VALUE,
+            MediaType.APPLICATION_JSON_UTF8_VALUE })
     ResponseEntity<Messages> getMessages() {
-        return ResponseEntity.ok(getTextMessages());
-    }
-
-    private Messages getTextMessages() {
-        return new Messages(Collections.unmodifiableList(MESSAGES));
+        return ResponseEntity.ok(messageService.getCurrentMessages());
     }
 
     @PostMapping(consumes = { MediaType.APPLICATION_FORM_URLENCODED_VALUE }, produces = { MediaType.APPLICATION_JSON_UTF8_VALUE })
     ResponseEntity<Messages> newMessage(@RequestParam("text") final String text) {
-        final TextMessage message = new TextMessage(text);
-
-        MESSAGES.add(message);
-        rabbitTemplate.convertAndSend("", QueueNames.QUEUE_NAME, message, new CorrelationData(messageIdentifier.get()));
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(getTextMessages());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(messageService.createNewMessage(new TextMessage(text)));
     }
 }

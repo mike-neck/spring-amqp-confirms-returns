@@ -11,6 +11,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -31,8 +33,7 @@ public class SourceApp {
     @Bean
     @Primary
     ObjectMapper objectMapper() {
-        return new ObjectMapper()
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        return new ObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
                 .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
                 .setSerializationInclusion(JsonInclude.Include.NON_NULL)
                 .registerModule(new JavaTimeModule());
@@ -63,5 +64,13 @@ public class SourceApp {
                 correlationData,
                 ack ? "ack" : "nack",
                 cause);
+    }
+
+    @Bean
+    RedisTemplate<TextMessage, Integer> redisTemplate(
+            final RedisConnectionFactory redisConnectionFactory) {
+        final RedisTemplate<TextMessage, Integer> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        return redisTemplate;
     }
 }

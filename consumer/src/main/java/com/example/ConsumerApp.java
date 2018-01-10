@@ -8,6 +8,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.handler.annotation.support.DefaultMessageHandlerMethodFactory;
 import org.springframework.messaging.handler.annotation.support.MessageHandlerMethodFactory;
@@ -54,5 +56,13 @@ public class ConsumerApp implements RabbitListenerConfigurer {
     @Override
     public void configureRabbitListeners(final RabbitListenerEndpointRegistrar registrar) {
         registrar.setMessageHandlerMethodFactory(messageHandlerMethodFactory());
+    }
+
+    @Bean
+    RedisTemplate<TextMessage, Integer> redisTemplate(
+            final RedisConnectionFactory redisConnectionFactory) {
+        final RedisTemplate<TextMessage, Integer> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        return redisTemplate;
     }
 }
